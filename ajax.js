@@ -47,7 +47,7 @@ ajax.send = function(url, callback, method, data, async) {
     //发送HTTP请求
     httpRequest.send(data);
 };
-
+//实现GET请求
 ajax.get = function(url, data, callback, async) {
     var query = [];
     for (var key in data) {
@@ -55,7 +55,7 @@ ajax.get = function(url, data, callback, async) {
     }
     ajax.send(url + (query.length ? '?' + query.join('&') : ''), callback, 'GET', null, async)
 };
-
+//实现POST请求
 ajax.post = function(url, data, callback, async) {
     var query = [];
     for (var key in data) {
