@@ -1,6 +1,7 @@
 var ajax = {};
 ajax.httpRequest = function() {
-    //判断是否支持XMLHttpRequest对象
+    // 判断是否支持XMLHttpRequest对象
+    // Chrome, Firefox, Opera 8.0+, Safari
     if (window.XMLHttpRequest) {
         return new XMLHttpRequest();
     }

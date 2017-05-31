@@ -1,6 +1,7 @@
 const ajax = {};
 ajax.httpRequest = () => {
     //判断是否支持XMLHttpRequest对象
+    // Chrome, Firefox, Opera 8.0+, Safari
     if (window.XMLHttpRequest) {
         return new XMLHttpRequest();
     }
@@ -33,7 +34,7 @@ ajax.send = (url, callback, method, data, async) => {
     //初始化HTTP请求
     httpRequest.open(method, url, async);
     //onreadystatechange函数对象
-    httpRequest.onreadystatechange = function() {
+    httpRequest.onreadystatechange = () => {
         //readyState 的值等于4，从服务器拿到了数据
         if (httpRequest.readyState == 4) {
             //回调服务器响应数据
@@ -50,16 +51,16 @@ ajax.send = (url, callback, method, data, async) => {
 //实现GET请求
 ajax.get = (url, data, callback, async) => {
     const query = [];
-    for (var key in data) {
+    for (let key in data) {
         query.push(`${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`);
     }
-    ajax.send(`${url}${query.length ? '?' + query.join('&') : ''}`, callback, 'GET', null, async)
+    ajax.send(`${url}${query.length ? `?${query.join('&')}` : ''}`, callback, 'GET', null, async);
 };
 //实现POST请求
 ajax.post = (url, data, callback, async) => {
     const query = [];
-    for (var key in data) {
+    for (let key in data) {
         query.push(`${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`);
     }
-    ajax.send(url, callback, 'POST', query.join('&'), async)
+    ajax.send(url, callback, 'POST', query.join('&'), async);
 };
