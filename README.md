@@ -75,7 +75,7 @@ ajax.post('/', {
 ajax.post('/', {
     data: formData,
     xhr: function(xhr) {
-        console.log(xhr);
+       console.log(xhr);
 	}
 });
 ```
