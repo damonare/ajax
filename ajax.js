@@ -1,5 +1,5 @@
 var ajax = {};
-ajax.httpRequest = function() {
+ajax.httpRequest = function () {
     // 判断是否支持XMLHttpRequest对象
     // Chrome, Firefox, Opera 8.0+, Safari
     if (window.XMLHttpRequest) {
@@ -14,53 +14,99 @@ ajax.httpRequest = function() {
         "MSXML2.XmlHttp.2.0",
         "Microsoft.XmlHttp"
     ];
-    //定义局部变量xhr,储存IE浏览器的ActiveXObject对象
+    // 定义局部变量xhr,储存IE浏览器的ActiveXObject对象
     var xhr;
     for (var i = 0; i < versions.length; i++) {
         try {
             xhr = new ActiveXObject(versions[i]);
             break;
-        } catch (e) {}
+        } catch (e) { }
     }
     return xhr;
 };
 
-ajax.send = function(url, callback, method, data, async) {
-    //默认异步
+ajax.send = function (url, callback, method, request, async) {
+    // 默认异步
     if (async === undefined) {
         async = true;
     }
     var httpRequest = ajax.httpRequest();
-    //初始化HTTP请求
+    if (typeof callback !== 'function') {
+        callback = function () {}
+    }
+    // 初始化HTTP请求
     httpRequest.open(method, url, async);
-    //onreadystatechange函数对象
-    httpRequest.onreadystatechange = function() {
-        //readyState 的值等于4，从服务器拿到了数据
+    // 获取xhr对象
+    request.xhr && request.xhr(httpRequest);
+    httpRequest.withCredentials = true;
+    if (request.withCredentials !== undefined) {
+        httpRequest.withCredentials = !!request.withCredentials;
+    }
+    // onreadystatechange函数对象
+    httpRequest.onreadystatechange = function () {
+        // readyState 的值等于4，从服务器拿到了数据
         if (httpRequest.readyState == 4) {
-            //回调服务器响应数据
-            callback(httpRequest.responseText)
+            // 回调服务器响应数据
+            if (httpRequest.status == 200) {// 200 = OK
+                var responseText = httpRequest.responseText;
+                if (request.dataType && request.dataType === 'json') {
+                    responseText = JSON.parse(responseText);
+                }
+                callback && callback({
+                    data: responseText,
+                    status: httpRequest.status,
+                    statusText: httpRequest.statusText,
+                    upload: httpRequest.upload
+                });
+                request.success && request.success({
+                    data: responseText,
+                    status: httpRequest.status,
+                    statusText: httpRequest.statusText,
+                    upload: httpRequest.upload
+                });
+            } else {
+                // 错误回调
+                callback && callback({
+                    status: httpRequest.status,
+                    statusText: httpRequest.statusText
+                });
+                request.error && request.error({
+                    status: httpRequest.status,
+                    statusText: httpRequest.statusText
+                });
+            }
+            
         }
     };
-    if (method == 'POST') {
-        //给指定的HTTP请求头赋值
-        httpRequest.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    if (method == 'POST' && request.contentType) {
+        // 给指定的HTTP请求头赋值
+        httpRequest.setRequestHeader('Content-Type', request.contentType);
     }
-    //发送HTTP请求
-    httpRequest.send(data);
+    // 发送HTTP请求
+    httpRequest.send(request.data);
 };
-//实现GET请求
-ajax.get = function(url, data, callback, async) {
+// 实现GET请求
+ajax.get = function (url, request, callback, async) {
     var query = [];
-    for (var key in data) {
-        query.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+    for (var key in request.data) {
+        query.push(encodeURIComponent(key) + '=' + encodeURIComponent(request.data[key]));
     }
-    ajax.send(url + (query.length ? '?' + query.join('&') : ''), callback, 'GET', null, async)
+    ajax.send(url + (query.length ? '?' + query.join('&') : ''), callback, 'GET', request, async)
 };
-//实现POST请求
-ajax.post = function(url, data, callback, async) {
+// 实现POST请求
+ajax.post = function (url, request, callback, async) {
     var query = [];
-    for (var key in data) {
-        query.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+    if (request.contentType.match(/json/g)) {
+        try {
+            request.data = JSON.stringify(request.data);
+        } catch(e) {
+            throw new Error(err);
+        }
+    } else {
+        for (var key in request.data) {
+            query.push(encodeURIComponent(key) + '=' + encodeURIComponent(request.data[key]));
+        }
+        request.data = query.join('&');
     }
-    ajax.send(url, callback, 'POST', query.join('&'), async)
+    ajax.send(url, callback, 'POST', request, async)
 };
