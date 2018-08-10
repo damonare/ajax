@@ -83,7 +83,7 @@ ajax.post('/', {
 
 #### 同步请求(慎用)
 
-```
+```javascript
 // 实例对象
 ajax.get('/', {
     data: {}
