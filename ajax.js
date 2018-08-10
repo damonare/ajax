@@ -31,6 +31,36 @@ ajax.send = function (url, callback, method, request, async) {
         async = true;
     }
     var httpRequest = ajax.httpRequest();
+    var handleResult = function() {
+        if (httpRequest.status == 200) {// 200 = OK
+            var responseText = httpRequest.responseText;
+            if (request.dataType && request.dataType === 'json') {
+                responseText = JSON.parse(responseText);
+            }
+            callback && callback({
+                data: responseText,
+                status: httpRequest.status,
+                statusText: httpRequest.statusText,
+                upload: httpRequest.upload
+            });
+            request.success && request.success({
+                data: responseText,
+                status: httpRequest.status,
+                statusText: httpRequest.statusText,
+                upload: httpRequest.upload
+            });
+        } else {
+            // 错误回调
+            callback && callback({
+                status: httpRequest.status,
+                statusText: httpRequest.statusText
+            });
+            request.error && request.error({
+                status: httpRequest.status,
+                statusText: httpRequest.statusText
+            });
+        }
+    }
     if (typeof callback !== 'function') {
         callback = function () {}
     }
@@ -42,42 +72,25 @@ ajax.send = function (url, callback, method, request, async) {
     if (request.withCredentials !== undefined) {
         httpRequest.withCredentials = !!request.withCredentials;
     }
-    // onreadystatechange函数对象
-    httpRequest.onreadystatechange = function () {
-        // readyState 的值等于4，从服务器拿到了数据
-        if (httpRequest.readyState == 4) {
-            // 回调服务器响应数据
-            if (httpRequest.status == 200) {// 200 = OK
-                var responseText = httpRequest.responseText;
-                if (request.dataType && request.dataType === 'json') {
-                    responseText = JSON.parse(responseText);
-                }
-                callback && callback({
-                    data: responseText,
-                    status: httpRequest.status,
-                    statusText: httpRequest.statusText,
-                    upload: httpRequest.upload
-                });
-                request.success && request.success({
-                    data: responseText,
-                    status: httpRequest.status,
-                    statusText: httpRequest.statusText,
-                    upload: httpRequest.upload
-                });
-            } else {
-                // 错误回调
-                callback && callback({
-                    status: httpRequest.status,
-                    statusText: httpRequest.statusText
-                });
-                request.error && request.error({
-                    status: httpRequest.status,
-                    statusText: httpRequest.statusText
-                });
-            }
-            
-        }
+    httpRequest.ontimeout = function () {
+        console.error("The request for " + url + " timed out.");
     };
+    httpRequest.onerror = function (e) {
+        console.error(xhr.statusText);
+    };
+    // onreadystatechange函数对象
+    if (async) {
+        httpRequest.onreadystatechange = function () {
+            // readyState 的值等于4，从服务器拿到了数据
+            if (httpRequest.readyState == 4) {
+                // 回调服务器响应数据
+                handleResult();
+            }
+        };
+    } else {
+        handleResult();
+    }
+    
     if (method == 'POST' && request.contentType) {
         // 给指定的HTTP请求头赋值
         httpRequest.setRequestHeader('Content-Type', request.contentType);

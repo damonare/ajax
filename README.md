@@ -5,7 +5,7 @@
 
 ### 例:
 
-### Get请求
+#### Get请求
 
 ```javascript
 ajax.get(url, {
@@ -14,7 +14,7 @@ ajax.get(url, {
 }, function(res){
     console.log(res);
 }, async);
-或
+// 或
 ajax.get(url, {
     name: 'damonare',
     sex: 'man'
@@ -69,14 +69,25 @@ ajax.post('/', {
 });
 ```
 
-#### XMLHTTPRequest实例对象获取
+#### XMLHttpRequest实例对象获取
 
 ```javascript
+// 实例对象
 ajax.post('/', {
-    data: formData,
+    data: {},
     xhr: function(xhr) {
-       console.log(xhr);
-	}
+        console.log(xhr);
+    }
 });
+```
+
+#### 同步请求(慎用)
+
+```
+// 实例对象
+ajax.get('/', {
+    data: {}
+}, function() {
+}, false);
 ```
 
