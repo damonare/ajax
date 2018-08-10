@@ -1,3 +1,6 @@
+/**
+ * @description 你可知道造轮子的兴奋？
+ */
 var ajax = {};
 ajax.httpRequest = function () {
     // 判断是否支持XMLHttpRequest对象
@@ -109,7 +112,12 @@ ajax.get = function (url, request, callback, async) {
 // 实现POST请求
 ajax.post = function (url, request, callback, async) {
     var query = [];
-    if (request.contentType.match(/json/g)) {
+    // contentType为false的请求，不进行数据处理；
+    if (request.contentType === false) {
+        ajax.send(url, callback, 'POST', request, async)
+        return;
+    }
+    if (request.contentType && request.contentType.match(/json/g)) {
         try {
             request.data = JSON.stringify(request.data);
         } catch(e) {
@@ -119,6 +127,7 @@ ajax.post = function (url, request, callback, async) {
         for (var key in request.data) {
             query.push(encodeURIComponent(key) + '=' + encodeURIComponent(request.data[key]));
         }
+        request.contentType = request.contentType || 'application/x-www-form-urlencoded; charset=UTF-8';
         request.data = query.join('&');
     }
     ajax.send(url, callback, 'POST', request, async)
