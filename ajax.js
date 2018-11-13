@@ -79,7 +79,7 @@ ajax.send = function (url, callback, method, request, async) {
         console.error("The request for " + url + " timed out.");
     };
     httpRequest.onerror = function (e) {
-        console.error(xhr.statusText);
+        console.error(httpRequest.statusText);
     };
     // onreadystatechange函数对象
     if (async) {
